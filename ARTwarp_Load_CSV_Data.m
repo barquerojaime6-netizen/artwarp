@@ -13,6 +13,9 @@ DATA = rmfield(DATA,'datenum');
 DATA = rmfield(DATA,'bytes');
 DATA = rmfield(DATA,'isdir');
 [numSamples x] = size(DATA);
+
+waitbr = waitbar(0, "Loading CSV contours...");
+
 for c1 = 1:numSamples
     
     % make sure to skip the header row, since it has characters in it and
@@ -27,7 +30,11 @@ for c1 = 1:numSamples
     DATA(c1).contour = freqContour(1:DATA(c1).length);
     DATA(c1).tempres = DATA(c1).ctrlength/DATA(c1).length;
     DATA(c1).category = 0;
+
+    waitbar(c1/numSamples, waitbr, sprintf('Loaded %d of %d', c1, numSamples));
 end
+close(waitbr)
+
 h = findobj('Tag', 'Runmenu');                                                                                                                        
 set(h, 'Enable', 'on');
 

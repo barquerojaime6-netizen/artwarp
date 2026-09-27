@@ -108,8 +108,11 @@ for i=1:length(fileList)
     filename = fullfile(output_folder,[name '.ctr']);
     ctrlength=length(freqContour)*tempres;% this calculates the duration of each contour 
     save(filename,'freqContour','tempres','ctrlength')
-
+    if ~is_cli_mode
+        waitbar(i/length(fileList),waitbr, sprintf('File %d of %d converted...', i, length(fileList)));
+    end
 end
-
-% Output success message
-fprintf('Converted .ctr files succesfully saved to: %s\n', folder_name)
+fprintf('Converted .ctr files succesfully saved to: %s\n', output_folder);
+if ~is_cli_mode
+    close(waitbr)
+end
