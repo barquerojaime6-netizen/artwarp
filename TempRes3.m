@@ -1,4 +1,4 @@
-function TempRes3(is_cli_mode, freqCol, tempres, folder_name)
+function TempRes3(is_cli_mode, freqCol, tempres, folder_name, output_folder)
 
 % Procedure to convert frequency-time formatted .csv files to .ctrs for
 % categorisation by ARTwarp
@@ -6,14 +6,15 @@ function TempRes3(is_cli_mode, freqCol, tempres, folder_name)
 % INPUTS
 % - is_cli_mode (1x1 boolean): boolean flag indicating whether to bypass
 % collecting parameters through the GUI. If is_cli_mode = false, the
-% program will promt the user to enter values for freqCol, tempres, and
-% folder_name
+% program will promt the user to enter values for freqCol, tempres,
+% input_folder and output_folder
 % - freqCol (1x1 double): the column containing the frequency values in the
 % csv file. Should be 1 for pulse trains and 2 for whistles from ROCCA
 % - tempres (1x1 double): the temporal resolution of the audio sample
 % (time between consecutive frequency values being recorded, in seconds)
-% - folder_name (char): the path to the folder containing the .csv files to
+% - input_folder (char): the path to the folder containing the .csv files to
 % convert
+% - output_folder (char): the path to the folder where the created .ctr are
 %
 % OUTPUTS
 % None.
@@ -28,12 +29,19 @@ function TempRes3(is_cli_mode, freqCol, tempres, folder_name)
 %folder_name = uigetdir(); %Code for selecting the folder
 %if (~folder_name); return; end
 
-% If not running in CLI mode, get values for folder_name, freqCol and
-% tempres from the uicontrol objects
+% No output folder given set as empty
+if nargin < 5
+    output_folder = '';
+end
+
+% If not running in CLI mode, get values for folder_name, freqCol,
+% tempres and output_folder from the uicontrol objects
 if ~is_cli_mode
+    h = findobj('Tag', 'conversion_parameter_GUI');
+    folder_name = getappdata(h, 'input_folder');
 
     h = findobj('Tag', 'folder_name');
-    folder_name = get(h, 'String');
+    output_folder = get(h, 'String');
 
     h = findobj('Tag', 'freqCol');
     freqCol = str2num(get(h, 'String'));
@@ -41,6 +49,11 @@ if ~is_cli_mode
     h = findobj('Tag', 'tempres');
     tempres = str2num(get(h, 'String'));
 
+end
+
+% Default output folder to input one
+if isempty(output_folder)
+    output_folder = folder_name;
 end
 
 % Validate folder_name
@@ -61,30 +74,38 @@ if isnan(tempres) || tempres <= 0
    return;
 end
 
+% Create output folder if one doesnt exist
+if ~isfolder(output_folder)
+    mkdir(output_folder)
+end
+
 % if not running in cli mode, close the 'conversion_parameter_GUI' window
 if ~is_cli_mode
     h = findobj('Tag','conversion_parameter_GUI');
     close(h)
 end
 
-% NAVIGATE TO FOLDER
-cd (folder_name);
-
-
-% CONVERT .csv FILES TO .ctr AND SAVE TO THE SAME FOLDER
+% CONVERT .csv FILES TO .ctr and save to output_folder
 % loop through the .csv files in the folder
-fileList = dir([folder_name '//*.csv']);
+fileList = dir(fullfile(folder_name, '*.csv'));
+if isempty(fileList)
+    errordlg('No .csv files found in the selected folder', 'No files Found');
+    return;
+end
+if ~is_cli_mode
+    waitbr = waitbar(0, 'Converting csv to ctr...');
+end
 
 for i=1:length(fileList) 
     curFile = fileList(i).name;
     curFile
-    allCols = csvread(curFile,1,0); %use for whistle contour files
+    allCols = csvread(fullfile(folder_name,curFile),1,0); %use for whistle contour files
     freqContour=allCols(:,freqCol)';
 %    Ia(i)= ([fileList([2,i]), i]); %To select the second column of fileList i.e. the csv files in the folder for i rows????
 %    fcontour=Ia(2,i)'; % Define fcontour as the second column of the csv files 
 %    filename=sprintf('Ia%d.ctr', i); % Save new files as .ctr files
-    [filepath,name,ext] = fileparts(curFile);
-    filename = fullfile(filepath,[name '.ctr']);
+    [~,name] = fileparts(curFile);
+    filename = fullfile(output_folder,[name '.ctr']);
     ctrlength=length(freqContour)*tempres;% this calculates the duration of each contour 
     save(filename,'freqContour','tempres','ctrlength')
 
