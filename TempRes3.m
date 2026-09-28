@@ -90,11 +90,17 @@ if isempty(fileList)
 end
 if ~is_cli_mode
     waitbr = waitbar(0, 'Converting csv to ctr...');
+    cleanupWb = onCleanup(@() delete(findall(0, 'Tag', 'TMWWaitbar')));
 end
 
 for i=1:length(fileList) 
     curFile = fileList(i).name;
-    allCols = csvread(fullfile(folder_name,curFile),1,0); %use for whistle contour files
+    try 
+        allCols = csvread(fullfile(folder_name,curFile),1,0); %use for whistle contour files
+    catch
+        warning("%s is an invalid csv, please check", fullfile(folder_name,curFile))
+        continue;
+    end
     freqContour=allCols(:,freqCol)';
 %    Ia(i)= ([fileList([2,i]), i]); %To select the second column of fileList i.e. the csv files in the folder for i rows????
 %    fcontour=Ia(2,i)'; % Define fcontour as the second column of the csv files 
