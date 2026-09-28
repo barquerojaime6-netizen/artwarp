@@ -98,7 +98,7 @@ for i=1:length(fileList)
     try 
         allCols = csvread(fullfile(folder_name,curFile),1,0); %use for whistle contour files
     catch
-        warning("%s is an invalid csv, please check", fullfile(folder_name,curFile))
+        warning("TempRes3:invalidCSV","%s is an invalid csv, please check", fullfile(folder_name,curFile))
         continue;
     end
     freqContour=allCols(:,freqCol)';

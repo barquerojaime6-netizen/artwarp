@@ -87,3 +87,34 @@ end
 
 rmdir(inDir, 's')
 rmdir(outDir, 's')
+
+%% Invalid CSV file is caught and conversion continues
+% Testing try and catch on invalid file TempRes3
+inDir = tempname;
+outDir = tempname;
+
+mkdir(inDir)
+copyfile(fullfile(csvDir, '*.csv'), inDir);
+
+% Write a deliberately broken CSV (broken_csv.csv) into inDir
+brokenTxt = ["Time [ms], Peak Frequency [Hz]"
+"This is not a number, This isnt one either"];
+writelines(brokenTxt, fullfile(inDir, 'broken_csv.csv'));
+
+numCSV = length(dir(fullfile(inDir, '*.csv')));
+
+% Warning is visualy off (no msg) but still throws
+warning("off","TempRes3:invalidCSV");
+clean = onCleanup(@() warning("on", "TempRes3:invalidCSV"));
+lastwarn('')
+
+TempRes3(true, 2, 0.005, inDir, outDir);
+numCTR = length(dir(fullfile(outDir, '*.ctr')));
+
+% Checks that the warning was thrown (even if no msg)
+[msg, id] = lastwarn;
+assert(strcmp(id, "TempRes3:invalidCSV"), '%s error id is not TempRes3:invalidCSV', id)
+assert(numCTR == numCSV - 1, '%d ctr files were created from %d csv files in input directory', numCTR, numCSV);
+
+rmdir(inDir, 's')
+rmdir(outDir, 's')
