@@ -24,7 +24,7 @@ for c1 = 1:numSamples
    % test=csvread(DATA(c1).name,0,0);    %this is if you don't want it to skip the header row...IS THAT RIGHT??
     test=csvread(fullfile(DATA(c1).folder, DATA(c1).name),1,0);   %this is if you want it to skip the
     %header row
-    freqContour = test(:,1);
+    freqContour = test(:,2);
     DATA(c1).ctrlength = freqContour(length(freqContour))/1000;
     DATA(c1).length = length(freqContour)-1;
     DATA(c1).contour = freqContour(1:DATA(c1).length);

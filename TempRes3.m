@@ -40,7 +40,7 @@ if ~is_cli_mode
     h = findobj('Tag', 'conversion_parameter_GUI');
     folder_name = getappdata(h, 'input_folder');
 
-    h = findobj('Tag', 'folder_name');
+    h = findobj('Tag', 'output_folder');
     output_folder = get(h, 'String');
 
     h = findobj('Tag', 'freqCol');
@@ -58,20 +58,17 @@ end
 
 % Validate folder_name
 if ~isfolder(folder_name)
-    errordlg('The specified folder does not exist.', 'Invalid Input');
-    return;
+    error('The specified folder does not exist. Invalid Input');
 end
 
 % Validate freqCol
 if isnan(freqCol) || mod(freqCol,1) ~= 0 || freqCol <= 0
-    errordlg('freqCol must be a positive integer.', 'Invalid Input');
-    return;
+    error('freqCol must be a positive integer. Invalid Input');
 end
 
 % Validate tempres
 if isnan(tempres) || tempres <= 0
-   errordlg('tempres must be a real number greater than 0.', 'Invalid Input');
-   return;
+   error('tempres must be a real number greater than 0. Invalid Input');
 end
 
 % Create output folder if one doesnt exist
@@ -89,8 +86,7 @@ end
 % loop through the .csv files in the folder
 fileList = dir(fullfile(folder_name, '*.csv'));
 if isempty(fileList)
-    errordlg('No .csv files found in the selected folder', 'No files Found');
-    return;
+    error('No .csv files found in the selected folder.');
 end
 if ~is_cli_mode
     waitbr = waitbar(0, 'Converting csv to ctr...');
@@ -98,7 +94,6 @@ end
 
 for i=1:length(fileList) 
     curFile = fileList(i).name;
-    curFile
     allCols = csvread(fullfile(folder_name,curFile),1,0); %use for whistle contour files
     freqContour=allCols(:,freqCol)';
 %    Ia(i)= ([fileList([2,i]), i]); %To select the second column of fileList i.e. the csv files in the folder for i rows????
